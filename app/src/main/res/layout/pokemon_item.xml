@@ -9,19 +9,20 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="15dp"
+        android:translationZ="5dp"
         app:cardCornerRadius="10dp"
-        android:translationZ="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraintCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/design_default_color_primary"
             android:orientation="vertical"
             android:paddingLeft="10dp"
-            android:paddingTop="10dp">
+            android:paddingTop="10dp"
+            tools:background="@color/design_default_color_primary">
 
             <TextView
                 android:id="@+id/txtPokemonName"
@@ -55,8 +56,8 @@
         android:id="@+id/imgPokemon"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:translationZ="10dp"
         android:translationX="-5dp"
+        android:translationZ="7dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         tools:background="@drawable/pokemon" />
