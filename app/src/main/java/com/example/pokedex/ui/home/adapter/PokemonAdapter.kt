@@ -13,7 +13,10 @@ import com.bumptech.glide.request.transition.Transition
 import com.example.pokedex.data.model.Pokemon
 import com.example.pokedex.databinding.PokemonItemBinding
 
-class PokemonAdapter(private val pokemonList: List<Pokemon>) :
+class PokemonAdapter(
+    private val pokemonList: List<Pokemon>,
+    private val onClick: (Pokemon) -> Unit
+) :
     RecyclerView.Adapter<PokemonAdapter.PokemonViewHolder>() {
 
     class PokemonViewHolder(
@@ -55,9 +58,13 @@ class PokemonAdapter(private val pokemonList: List<Pokemon>) :
         parent: ViewGroup,
         viewType: Int
     ): PokemonAdapter.PokemonViewHolder {
-        val itemBinding =
-            PokemonItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val itemBinding = PokemonItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         val holder = PokemonViewHolder(itemBinding, parent.context)
+
+        itemBinding.constraintCard.setOnClickListener {
+            onClick(pokemonList[holder.bindingAdapterPosition])
+        }
+
         return holder
     }
 

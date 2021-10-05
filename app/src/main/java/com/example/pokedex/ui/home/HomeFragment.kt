@@ -7,9 +7,11 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import com.example.pokedex.R
 import com.example.pokedex.core.Result
 import com.example.pokedex.data.RetrofitClient.webService
+import com.example.pokedex.data.model.Pokemon
 import com.example.pokedex.data.remote.RemotePokemonDataSource
 import com.example.pokedex.databinding.FragmentHomeBinding
 import com.example.pokedex.domain.PokemonRepoImpl
@@ -30,6 +32,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         )
     }
 
+    private fun pokemonClick(pokemon: Pokemon) {
+        Toast.makeText(requireContext(), "${pokemon.name}", Toast.LENGTH_SHORT).show()
+        findNavController().navigate(R.id.action_homeFragment_to_pokemonDetailFragment)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeBinding.bind(view)
@@ -41,8 +48,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 }
                 is Result.Success -> {
                     binding.progressBar.visibility = View.GONE
-                    Log.d("Pokemons",result.data.results.toString())
-                    binding.rvHome.adapter = PokemonAdapter(result.data.results)
+                    Log.d("Pokemons", result.data.results.toString())
+                    binding.rvHome.adapter =
+                        PokemonAdapter(
+                            result.data.results,
+                            onClick = { pokemon -> pokemonClick(pokemon) })
                 }
                 is Result.Failure -> {
                     binding.progressBar.visibility = View.GONE
