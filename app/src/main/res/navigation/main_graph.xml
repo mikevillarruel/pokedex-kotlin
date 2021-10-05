@@ -12,11 +12,19 @@
         tools:layout="@layout/fragment_home" >
         <action
             android:id="@+id/action_homeFragment_to_pokemonDetailFragment"
-            app:destination="@id/pokemonDetailFragment" />
+            app:destination="@id/pokemonDetailFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
     </fragment>
     <fragment
         android:id="@+id/pokemonDetailFragment"
         android:name="com.example.pokedex.ui.detail.PokemonDetailFragment"
         android:label="fragment_pokemon_detail"
-        tools:layout="@layout/fragment_pokemon_detail" />
+        tools:layout="@layout/fragment_pokemon_detail" >
+        <argument
+            android:name="pokemon"
+            app:argType="com.example.pokedex.data.model.Pokemon" />
+    </fragment>
 </navigation>

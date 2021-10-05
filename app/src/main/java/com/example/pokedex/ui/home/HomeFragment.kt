@@ -33,8 +33,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun pokemonClick(pokemon: Pokemon) {
-        Toast.makeText(requireContext(), "${pokemon.name}", Toast.LENGTH_SHORT).show()
-        findNavController().navigate(R.id.action_homeFragment_to_pokemonDetailFragment)
+        val action = HomeFragmentDirections.actionHomeFragmentToPokemonDetailFragment(pokemon)
+        findNavController().navigate(action)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
