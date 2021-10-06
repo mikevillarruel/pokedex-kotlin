@@ -22,6 +22,7 @@ import com.example.pokedex.ui.home.adapter.PokemonAdapter
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var binding: FragmentHomeBinding
+    private var listPokemon: List<Pokemon> = listOf()
     private val viewModel by viewModels<PokemonViewModel> {
         PokemonViewModelFactory(
             PokemonRepoImpl(
@@ -41,29 +42,40 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         super.onViewCreated(view, savedInstanceState)
         binding = FragmentHomeBinding.bind(view)
 
-        viewModel.getPokemons().observe(viewLifecycleOwner, Observer { result ->
-            when (result) {
-                is Result.Loading -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                }
-                is Result.Success -> {
-                    binding.progressBar.visibility = View.GONE
-                    Log.d("Pokemons", result.data.results.toString())
-                    binding.rvHome.adapter =
-                        PokemonAdapter(
-                            result.data.results,
-                            onClick = { pokemon -> pokemonClick(pokemon) })
-                }
-                is Result.Failure -> {
-                    binding.progressBar.visibility = View.GONE
-                    Toast.makeText(
-                        requireContext(),
-                        "Error: ${result.exception}",
-                        Toast.LENGTH_SHORT
-                    ).show()
 
+        if (listPokemon.size == 0) {
+            viewModel.getPokemons().observe(viewLifecycleOwner, Observer { result ->
+                when (result) {
+                    is Result.Loading -> {
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+                    is Result.Success -> {
+                        binding.progressBar.visibility = View.GONE
+                        Log.d("Pokemons", result.data.results.toString())
+
+                        listPokemon = result.data.results
+
+                        binding.rvHome.adapter =
+                            PokemonAdapter(
+                                listPokemon,
+                                onClick = { pokemon -> pokemonClick(pokemon) })
+                    }
+                    is Result.Failure -> {
+                        binding.progressBar.visibility = View.GONE
+                        Toast.makeText(
+                            requireContext(),
+                            "Error: ${result.exception}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+
+                    }
                 }
-            }
-        })
+            })
+        } else {
+            binding.rvHome.adapter =
+                PokemonAdapter(
+                    listPokemon,
+                    onClick = { pokemon -> pokemonClick(pokemon) })
+        }
     }
 }
