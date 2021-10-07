@@ -8,10 +8,10 @@ import com.example.pokedex.domain.PokemonRepo
 import kotlinx.coroutines.Dispatchers
 
 class PokemonViewModel(private val repo: PokemonRepo) : ViewModel() {
-    fun getPokemons() = liveData(Dispatchers.IO) {
+    fun getPokemons(offset: Int, limit: Int) = liveData(Dispatchers.IO) {
         emit(Result.Loading())
         try {
-            emit(Result.Success(repo.getPokemons()))
+            emit(Result.Success(repo.getPokemons(offset, limit)))
         } catch (e: Exception) {
             emit(Result.Failure(e))
         }

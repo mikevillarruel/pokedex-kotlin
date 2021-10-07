@@ -8,6 +8,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
 import com.example.pokedex.core.Result
 import com.example.pokedex.data.RetrofitClient.webService
@@ -22,7 +24,12 @@ import com.example.pokedex.ui.home.adapter.PokemonAdapter
 class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private lateinit var binding: FragmentHomeBinding
-    private var listPokemon: List<Pokemon> = listOf()
+    private var listPokemon: MutableList<Pokemon> = mutableListOf()
+    private lateinit var adapter: PokemonAdapter
+    private var limit = 100
+    private var offset = 0
+    private var last = limit - 1
+
     private val viewModel by viewModels<PokemonViewModel> {
         PokemonViewModelFactory(
             PokemonRepoImpl(
@@ -40,42 +47,72 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = FragmentHomeBinding.bind(view)
 
+        binding = FragmentHomeBinding.bind(view)
+        adapter = PokemonAdapter(listPokemon, onClick = { pokemon -> pokemonClick(pokemon) })
+        binding.rvHome.adapter = adapter
+
+        binding.rvHome.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                val layoutManager = (binding.rvHome.layoutManager as LinearLayoutManager)
+                val lastItem = layoutManager.findLastCompletelyVisibleItemPosition()
+
+                if ((lastItem + 1).mod(limit) == 0 && lastItem == last) {
+                    offset = offset + limit
+                    last = last + limit
+                    loadMore(offset, limit)
+                }
+            }
+        })
 
         if (listPokemon.size == 0) {
-            viewModel.getPokemons().observe(viewLifecycleOwner, Observer { result ->
-                when (result) {
-                    is Result.Loading -> {
+            loadMore(offset, limit)
+        }
+    }
+
+    fun loadMore(offset: Int, limit: Int) {
+        viewModel.getPokemons(offset, limit).observe(viewLifecycleOwner, Observer { result ->
+            when (result) {
+                is Result.Loading -> {
+                    if (listPokemon.size == 0) {
                         binding.progressBar.visibility = View.VISIBLE
-                    }
-                    is Result.Success -> {
-                        binding.progressBar.visibility = View.GONE
-                        Log.d("Pokemons", result.data.results.toString())
-
-                        listPokemon = result.data.results
-
-                        binding.rvHome.adapter =
-                            PokemonAdapter(
-                                listPokemon,
-                                onClick = { pokemon -> pokemonClick(pokemon) })
-                    }
-                    is Result.Failure -> {
-                        binding.progressBar.visibility = View.GONE
-                        Toast.makeText(
-                            requireContext(),
-                            "Error: ${result.exception}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
+                    } else {
+                        binding.progressBarDown.visibility = View.VISIBLE
                     }
                 }
-            })
-        } else {
-            binding.rvHome.adapter =
-                PokemonAdapter(
-                    listPokemon,
-                    onClick = { pokemon -> pokemonClick(pokemon) })
-        }
+                is Result.Success -> {
+
+                    if (listPokemon.size == 0) {
+                        binding.progressBar.visibility = View.GONE
+                    } else {
+                        binding.progressBarDown.visibility = View.GONE
+                    }
+
+                    if (result.data.count == listPokemon.size.toLong()) return@Observer
+
+                    Log.d("Pokemons", result.data.results.toString())
+
+                    result.data.results.forEach {
+                        listPokemon.add(it)
+                    }
+
+                    adapter.notifyDataSetChanged()
+
+                }
+                is Result.Failure -> {
+                    binding.progressBar.visibility = View.GONE
+                    binding.progressBarDown.visibility = View.GONE
+
+                    Toast.makeText(
+                        requireContext(),
+                        "Error: ${result.exception}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+
+                }
+            }
+        })
     }
 }
