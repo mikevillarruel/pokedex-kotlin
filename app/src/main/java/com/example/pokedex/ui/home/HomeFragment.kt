@@ -1,7 +1,6 @@
 package com.example.pokedex.ui.home
 
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -26,7 +25,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var binding: FragmentHomeBinding
     private var listPokemon: MutableList<Pokemon> = mutableListOf()
     private lateinit var adapter: PokemonAdapter
-    private var limit = 100
+    private var limit = 30
     private var offset = 0
     private var last = limit - 1
 
@@ -60,8 +59,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val lastItem = layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if ((lastItem + 1).mod(limit) == 0 && lastItem == last) {
+
+                    listPokemon.add(Pokemon())
+
+                    adapter.notifyDataSetChanged()
+
                     offset = offset + limit
                     last = last + limit
+
                     loadMore(offset, limit)
                 }
             }
@@ -78,8 +83,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 is Result.Loading -> {
                     if (listPokemon.size == 0) {
                         binding.progressBar.visibility = View.VISIBLE
-                    } else {
-                        binding.progressBarDown.visibility = View.VISIBLE
                     }
                 }
                 is Result.Success -> {
@@ -87,12 +90,10 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     if (listPokemon.size == 0) {
                         binding.progressBar.visibility = View.GONE
                     } else {
-                        binding.progressBarDown.visibility = View.GONE
+                        listPokemon.removeLast()
                     }
 
                     if (result.data.count == listPokemon.size.toLong()) return@Observer
-
-                    Log.d("Pokemons", result.data.results.toString())
 
                     result.data.results.forEach {
                         listPokemon.add(it)
@@ -102,8 +103,15 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
                 }
                 is Result.Failure -> {
+
                     binding.progressBar.visibility = View.GONE
-                    binding.progressBarDown.visibility = View.GONE
+
+                    if (listPokemon.size == 0) {
+                        binding.progressBar.visibility = View.GONE
+                    } else {
+                        listPokemon.removeLast()
+                        adapter.notifyDataSetChanged()
+                    }
 
                     Toast.makeText(
                         requireContext(),

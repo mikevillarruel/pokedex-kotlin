@@ -37,18 +37,4 @@
         app:spanCount="2"
         tools:listitem="@layout/pokemon_item" />
 
-    <RelativeLayout
-        android:id="@+id/progressBarDown"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent">
-
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </RelativeLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
