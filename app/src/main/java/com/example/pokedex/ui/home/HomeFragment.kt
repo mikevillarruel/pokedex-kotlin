@@ -87,12 +87,13 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         adapter.notifyItemRemoved(offset)
                     }
 
-                    if (result.data.count == listPokemon.size.toLong()) return@Observer
+                    val next = result.data.next
 
-                    val next = result.data.next.split("=", "&")
-
-                    offset = next[1].toInt()
-                    limit = next[3].toInt()
+                    if (!next.isNullOrEmpty()) {
+                        val nextData = next.split("=", "&")
+                        offset = nextData[1].toInt()
+                        limit = nextData[3].toInt()
+                    }
 
                     result.data.results.forEach {
                         listPokemon.add(it)
@@ -109,7 +110,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         binding.progressBar.visibility = View.GONE
                     } else {
                         listPokemon.removeLast()
-                        adapter.notifyDataSetChanged()
+                        adapter.notifyItemRemoved(offset)
                     }
 
                     Toast.makeText(
