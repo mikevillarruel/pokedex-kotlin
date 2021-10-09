@@ -25,9 +25,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var binding: FragmentHomeBinding
     private var listPokemon: MutableList<Pokemon> = mutableListOf()
     private lateinit var adapter: PokemonAdapter
-    private var limit = 30
+    private var limit = 50
     private var offset = 0
-    private var last = limit - 1
 
     private val viewModel by viewModels<PokemonViewModel> {
         PokemonViewModelFactory(
@@ -56,28 +55,22 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 super.onScrolled(recyclerView, dx, dy)
 
                 val layoutManager = (binding.rvHome.layoutManager as LinearLayoutManager)
-                val lastItem = layoutManager.findLastCompletelyVisibleItemPosition()
+                val lastItem = 1 + layoutManager.findLastCompletelyVisibleItemPosition()
 
-                if ((lastItem + 1).mod(limit) == 0 && lastItem == last) {
-
+                if (lastItem == offset && listPokemon.size == offset) {
                     listPokemon.add(Pokemon())
-
-                    adapter.notifyDataSetChanged()
-
-                    offset = offset + limit
-                    last = last + limit
-
-                    loadMore(offset, limit)
+                    adapter.notifyItemInserted(offset)
+                    loadMore()
                 }
             }
         })
 
         if (listPokemon.size == 0) {
-            loadMore(offset, limit)
+            loadMore()
         }
     }
 
-    fun loadMore(offset: Int, limit: Int) {
+    fun loadMore() {
         viewModel.getPokemons(offset, limit).observe(viewLifecycleOwner, Observer { result ->
             when (result) {
                 is Result.Loading -> {
@@ -91,15 +84,21 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         binding.progressBar.visibility = View.GONE
                     } else {
                         listPokemon.removeLast()
+                        adapter.notifyItemRemoved(offset)
                     }
 
                     if (result.data.count == listPokemon.size.toLong()) return@Observer
+
+                    val next = result.data.next.split("=", "&")
+
+                    offset = next[1].toInt()
+                    limit = next[3].toInt()
 
                     result.data.results.forEach {
                         listPokemon.add(it)
                     }
 
-                    adapter.notifyDataSetChanged()
+                    adapter.notifyItemInserted(offset - 1)
 
                 }
                 is Result.Failure -> {
