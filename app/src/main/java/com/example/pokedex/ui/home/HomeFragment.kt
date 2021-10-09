@@ -99,7 +99,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                         listPokemon.add(it)
                     }
 
-                    adapter.notifyItemInserted(offset - 1)
+                    adapter.notifyItemInserted(listPokemon.size - 1)
 
                 }
                 is Result.Failure -> {
