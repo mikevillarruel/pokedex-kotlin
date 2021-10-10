@@ -1,12 +1,15 @@
 package com.example.pokedex.ui.home
 
+import android.graphics.Rect
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.pokedex.R
@@ -27,6 +30,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private lateinit var adapter: PokemonAdapter
     private var limit = 50
     private var offset = 0
+    private var statusBarSize = 0
 
     private val viewModel by viewModels<PokemonViewModel> {
         PokemonViewModelFactory(
@@ -50,6 +54,26 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         adapter = PokemonAdapter(listPokemon, onClick = { pokemon -> pokemonClick(pokemon) })
         binding.rvHome.adapter = adapter
 
+        view.setOnApplyWindowInsetsListener { view, insets ->
+            statusBarSize = insets.systemWindowInsetTop
+            Log.d("data", "$statusBarSize")
+            insets
+        }
+
+        binding.rvHome.addItemDecoration(object : RecyclerView.ItemDecoration() {
+            override fun getItemOffsets(
+                outRect: Rect,
+                itemPosition: Int,
+                parent: RecyclerView
+            ) {
+                super.getItemOffsets(outRect, itemPosition, parent)
+                val columns = (binding.rvHome.layoutManager as GridLayoutManager).spanCount
+                if (itemPosition < columns) {
+                    outRect.top = statusBarSize
+                }
+            }
+        })
+
         binding.rvHome.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -58,8 +82,6 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 val lastItem = 1 + layoutManager.findLastCompletelyVisibleItemPosition()
 
                 if (lastItem == offset && listPokemon.size == offset) {
-                    listPokemon.add(Pokemon())
-                    adapter.notifyItemInserted(offset)
                     loadMore()
                 }
             }
@@ -76,6 +98,9 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                 is Result.Loading -> {
                     if (listPokemon.size == 0) {
                         binding.progressBar.visibility = View.VISIBLE
+                    } else {
+                        listPokemon.add(Pokemon())
+                        adapter.notifyItemInserted(offset)
                     }
                 }
                 is Result.Success -> {
